@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlowTrade Stats</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A84C; --gold-light: #F5C842;
+    --surface: #161616; --surface2: #1E1E1E;
+    --border: #242424; --text: #F0EDE6;
+    --muted: #666660; --green: #3DBA7A; --red: #E05555;
+  }
+  body { background: transparent; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+
+  /* ── STEPS ── */
+  #step1, #step2, #step3 { display: none; flex-direction: column; gap: 14px; padding: 20px; }
+
+  .widget-title {
+    font-size: 13px; font-weight: 700; color: var(--text);
+    letter-spacing: -0.2px;
+  }
+  .widget-title span { color: var(--gold-light); }
+
+  .step-indicator {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .step-dot {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border);
+    font-size: 10px; font-weight: 700; color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-dot.active { background: var(--gold); border-color: var(--gold); color: #000; }
+  .step-dot.done { background: var(--green); border-color: var(--green); color: #fff; }
+  .step-line { flex: 1; height: 1px; background: var(--border); }
+
+  .step-desc {
+    font-size: 12px; color: var(--muted); line-height: 1.6;
+  }
+  .step-desc b { color: var(--text); font-weight: 600; }
+
+  .action-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: var(--gold); border: none; border-radius: 8px;
+    color: #000; font-family: 'Inter', sans-serif;
+    font-size: 13px; font-weight: 700; padding: 11px 16px;
+    cursor: pointer; transition: background 0.2s; width: 100%;
+    text-decoration: none;
+  }
+  .action-btn:hover { background: var(--gold-light); }
+
+  .action-btn-outline {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: transparent; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-family: 'Inter', sans-serif;
+    font-size: 13px; font-weight: 500; padding: 11px 16px;
+    cursor: pointer; transition: all 0.2s; width: 100%;
+  }
+  .action-btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+  .token-input {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 11px; padding: 10px 12px; outline: none;
+    width: 100%; transition: border-color 0.2s;
+  }
+  .token-input:focus { border-color: var(--gold); }
+  .token-input::placeholder { color: var(--muted); }
+
+  .input-label {
+    font-size: 10px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 5px;
+  }
+
+  .hint-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px;
+    font-size: 11px; color: var(--muted); line-height: 1.6;
+  }
+  .hint-box b { color: var(--gold); font-weight: 600; }
+
+  .error-msg {
+    font-size: 11px; color: var(--red);
+    text-align: center; display: none;
+  }
+
+  /* ── LOADING ── */
+  #loading { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 140px; gap: 12px; }
+  .spinner { width: 22px; height: 22px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 12px; color: var(--muted); }
+
+  /* ── STATS ── */
+  #stats-screen { display: none; flex-direction: column; }
+
+  .stats-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+  }
+  .stats-brand { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+  .stats-brand span { color: var(--gold); }
+  .disconnect-btn { background: transparent; border: 1px solid var(--border); border-radius: 5px; color: var(--muted); font-size: 10px; padding: 3px 10px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+  .disconnect-btn:hover { border-color: var(--red); color: var(--red); }
+
+  .cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); }
+  .cards-grid-2 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border-top: 1px solid var(--border); }
+
+  .stat-card { background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 5px; transition: background 0.2s; }
+  .stat-card:hover { background: var(--surface2); }
+  .card-header { display: flex; align-items: center; justify-content: space-between; }
+  .card-label { font-size: 10px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+  .card-icon { font-size: 13px; opacity: 0.5; }
+  .card-value { font-size: 26px; font-weight: 800; letter-spacing: -0.8px; line-height: 1; color: var(--text); }
+  .card-value.green { color: var(--green); }
+  .card-value.gold { color: var(--gold-light); }
+  .card-value.red { color: var(--red); }
+  .card-sub { font-size: 10px; color: var(--muted); }
+
+  .stats-bottom { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; border-top: 1px solid var(--border); }
+  .last-updated { font-size: 10px; color: var(--muted); font-family: 'SF Mono', monospace; }
+  .dot-live { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--green); margin-right: 5px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .refresh-btn { background: transparent; border: none; color: var(--gold); font-size: 10px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; }
+  .refresh-btn:hover { color: var(--gold-light); }
+</style>
+</head>
+<body>
+
+<!-- STEP 1: Create Integration -->
+<div id="step1">
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <div class="widget-title">Flow<span>Trade</span> Stats</div>
+    <div class="step-indicator">
+      <div class="step-dot active" id="dot1">1</div>
+      <div class="step-line"></div>
+      <div class="step-dot" id="dot2">2</div>
+      <div class="step-line"></div>
+      <div class="step-dot" id="dot3">3</div>
+    </div>
+  </div>
+
+  <div class="hint-box">
+    <b>Step 1</b> — Create a Notion Integration to allow the widget to read your trades.<br>
+    Click the button below, create a new integration, then copy your token and come back.
+  </div>
+
+  <a class="action-btn" href="https://www.notion.so/my-integrations" target="_blank">
+    Open Notion Integrations →
+  </a>
+
+  <div class="input-label">Paste your Integration Token here</div>
+  <input class="token-input" id="token-input" type="password" placeholder="secret_xxxxxxxxxxxxxxxxxxxx" />
+
+  <button class="action-btn" onclick="goStep2()">Continue →</button>
+  <div class="error-msg" id="err1">Please paste your Integration Token first.</div>
+</div>
+
+<!-- STEP 2: Connect to Database -->
+<div id="step2">
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <div class="widget-title">Flow<span>Trade</span> Stats</div>
+    <div class="step-indicator">
+      <div class="step-dot done" id="dot1b">✓</div>
+      <div class="step-line"></div>
+      <div class="step-dot active" id="dot2b">2</div>
+      <div class="step-line"></div>
+      <div class="step-dot" id="dot3b">3</div>
+    </div>
+  </div>
+
+  <div class="hint-box">
+    <b>Step 2</b> — Connect your integration to Trade Log.<br>
+    Open <b>Trade Log</b> in Notion → click <b>···</b> top right → <b>Connections</b> → select your integration.
+  </div>
+
+  <button class="action-btn-outline" onclick="goStep3()">
+    I connected it → Continue
+  </button>
+
+  <button class="action-btn-outline" style="font-size:12px;padding:8px;" onclick="goStep1()">
+    ← Back
+  </button>
+</div>
+
+<!-- STEP 3: Enter Database ID -->
+<div id="step3">
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <div class="widget-title">Flow<span>Trade</span> Stats</div>
+    <div class="step-indicator">
+      <div class="step-dot done">✓</div>
+      <div class="step-line"></div>
+      <div class="step-dot done">✓</div>
+      <div class="step-line"></div>
+      <div class="step-dot active">3</div>
+    </div>
+  </div>
+
+  <div class="hint-box">
+    <b>Step 3</b> — Find your Trade Log Database ID.<br>
+    Open <b>Trade Log</b> in browser → copy the ID from the URL:<br>
+    notion.so/<b>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</b>?v=...
+  </div>
+
+  <div class="input-label">Trade Log Database ID</div>
+  <input class="token-input" id="db-input" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+
+  <button class="action-btn" onclick="connect()">Connect & Load Stats →</button>
+  <div class="error-msg" id="err3">Please enter your Database ID.</div>
+</div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Fetching your stats...</div>
+</div>
+
+<!-- STATS -->
+<div id="stats-screen">
+  <div class="stats-topbar">
+    <div class="stats-brand">Flow<span>Trade</span> · All Time</div>
+    <button class="disconnect-btn" onclick="disconnect()">Disconnect</button>
+  </div>
+  <div class="cards-grid">
+    <div class="stat-card">
+      <div class="card-header"><div class="card-label">Win Rate</div><div class="card-icon">🎯</div></div>
+      <div class="card-value green" id="s-winrate">—</div>
+      <div class="card-sub">excl. BE trades</div>
+    </div>
+    <div class="stat-card">
+      <div class="card-header"><div class="card-label">Total PnL</div><div class="card-icon">💰</div></div>
+      <div class="card-value" id="s-pnl">—</div>
+      <div class="card-sub" id="s-pnl-sub">all time</div>
+    </div>
+    <div class="stat-card">
+      <div class="card-header"><div class="card-label">Total Trades</div><div class="card-icon">📊</div></div>
+      <div class="card-value" id="s-trades">—</div>
+      <div class="card-sub" id="s-trades-sub">completed</div>
+    </div>
+    <div class="stat-card">
+      <div class="card-header"><div class="card-label">Avg R:R</div><div class="card-icon">⚖️</div></div>
+      <div class="card-value gold" id="s-rr">—</div>
+      <div class="card-sub">per trade</div>
+    </div>
+  </div>
+  <div class="cards-grid-2">
+    <div class="stat-card">
+      <div class="card-header"><div class="card-label">Wins</div><div class="card-icon">✅</div></div>
+      <div class="card-value green" id="s-wins">—</div>
+      <div class="card-sub">winning trades</div>
+    </div>
+    <div class="stat-card">
+      <div class="card-header"><div class="card-label">Losses</div><div class="card-icon">❌</div></div>
+      <div class="card-value red" id="s-losses">—</div>
+      <div class="card-sub">losing trades</div>
+    </div>
+    <div class="stat-card">
+      <div class="card-header"><div class="card-label">Break Even</div><div class="card-icon">⚖️</div></div>
+      <div class="card-value" id="s-be">—</div>
+      <div class="card-sub">BE trades</div>
+    </div>
+  </div>
+  <div class="stats-bottom">
+    <div class="last-updated"><span class="dot-live"></span><span id="last-updated">Just updated</span></div>
+    <button class="refresh-btn" onclick="loadStats()">↻ Refresh</button>
+  </div>
+</div>
+
+<script>
+var PROXY = 'https://api.allorigins.win/raw?url=';
+
+function show(id) {
+  ['step1','step2','step3','loading','stats-screen'].forEach(function(s) {
+    var el = document.getElementById(s);
+    if(el) el.style.display = s === id ? 'flex' : 'none';
+  });
+}
+
+function goStep1() { show('step1'); }
+function goStep2() {
+  var token = document.getElementById('token-input').value.trim();
+  var err = document.getElementById('err1');
+  if(!token || !token.startsWith('secret_')) {
+    err.textContent = 'Please paste a valid Integration Token (starts with secret_).';
+    err.style.display = 'block'; return;
+  }
+  err.style.display = 'none';
+  try { localStorage.setItem('ft_token', token); } catch(e){}
+  show('step2');
+}
+function goStep3() { show('step3'); }
+
+function disconnect() {
+  try { localStorage.removeItem('ft_token'); localStorage.removeItem('ft_db'); } catch(e){}
+  show('step1');
+}
+
+function formatPnl(val) {
+  var abs = Math.abs(val);
+  var str = abs >= 1000 ? '$' + (abs/1000).toFixed(1) + 'K' : '$' + abs.toFixed(0);
+  return (val < 0 ? '-' : '+') + str.replace('$','$');
+}
+
+async function loadStats() {
+  var token, db;
+  try { token = localStorage.getItem('ft_token'); db = localStorage.getItem('ft_db'); } catch(e){}
+  if(!token || !db) { show('step1'); return; }
+
+  show('loading');
+  try {
+    var url = 'https://api.notion.com/v1/databases/' + db + '/query';
+    var results = [];
+    var cursor = null;
+    do {
+      var body = { page_size: 100 };
+      if(cursor) body.start_cursor = cursor;
+      var resp = await fetch(PROXY + encodeURIComponent(url), {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Notion-Version':'2022-06-28', 'Authorization':'Bearer ' + token },
+        body: JSON.stringify(body)
+      });
+      var data = await resp.json();
+      results = results.concat(data.results || []);
+      cursor = data.has_more ? data.next_cursor : null;
+    } while(cursor);
+
+    var wins=0, losses=0, be=0, pnl=0, rrSum=0, rrCount=0;
+    results.forEach(function(p) {
+      var props = p.properties;
+      var status = props['Status'] && props['Status'].select ? props['Status'].select.name : '';
+      var pl = props['Profit/Loss ($)'] && props['Profit/Loss ($)'].number !== null ? (props['Profit/Loss ($)'].number || 0) : null;
+      var rr = props['R:R'] && props['R:R'].formula ? props['R:R'].formula.number : null;
+      if(status === 'Win') { wins++; if(pl !== null) pnl += pl; }
+      else if(status === 'Loss') { losses++; if(pl !== null) pnl += pl; }
+      else if(status === 'BE') { be++; if(pl !== null) pnl += pl; }
+      else return;
+      if(rr !== null && rr > 0) { rrSum += rr; rrCount++; }
+    });
+
+    var tradeable = wins + losses;
+    var wr = tradeable > 0 ? (wins / tradeable * 100) : 0;
+    var avgRR = rrCount > 0 ? rrSum / rrCount : 0;
+
+    var pnlEl = document.getElementById('s-pnl');
+    pnlEl.textContent = formatPnl(pnl);
+    pnlEl.className = 'card-value ' + (pnl >= 0 ? 'green' : 'red');
+
+    var wrEl = document.getElementById('s-winrate');
+    wrEl.textContent = wr.toFixed(1) + '%';
+    wrEl.className = 'card-value ' + (wr >= 50 ? 'green' : 'red');
+
+    document.getElementById('s-trades').textContent = wins + losses + be;
+    document.getElementById('s-trades-sub').textContent = wins + 'W · ' + losses + 'L · ' + be + ' BE';
+    document.getElementById('s-rr').textContent = avgRR > 0 ? '1:' + avgRR.toFixed(1) : 'N/A';
+    document.getElementById('s-wins').textContent = wins;
+    document.getElementById('s-losses').textContent = losses;
+    document.getElementById('s-be').textContent = be;
+
+    var now = new Date();
+    document.getElementById('last-updated').textContent = 'Updated ' + now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+
+    show('stats-screen');
+  } catch(e) {
+    show('step1');
+  }
+}
+
+async function connect() {
+  var dbRaw = document.getElementById('db-input').value.trim();
+  var err = document.getElementById('err3');
+  if(!dbRaw) { err.textContent = 'Please enter your Database ID.'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+
+  // Clean and format ID
+  var db = dbRaw.replace(/-/g,'').replace(/[^a-f0-9]/gi,'');
+  if(db.length === 32) {
+    db = db.slice(0,8)+'-'+db.slice(8,12)+'-'+db.slice(12,16)+'-'+db.slice(16,20)+'-'+db.slice(20);
+  } else { db = dbRaw; }
+
+  try { localStorage.setItem('ft_db', db); } catch(e){}
+  await loadStats();
+}
+
+// Init
+window.addEventListener('load', function() {
+  var token, db;
+  try { token = localStorage.getItem('ft_token'); db = localStorage.getItem('ft_db'); } catch(e){}
+  if(token && db) { loadStats(); }
+  else { show('step1'); }
+});
+</script>
+</body>
+</html>
