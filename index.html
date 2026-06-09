@@ -1,397 +1,582 @@
+bash
+
+cat > /mnt/user-data/outputs/psychology-guide.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FlowTrade Stats</title>
+<title>The Psychology of Execution</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --gold: #C9A84C; --gold-light: #F5C842;
-    --surface: #161616; --surface2: #1E1E1E;
-    --border: #242424; --text: #F0EDE6;
-    --muted: #666660; --green: #3DBA7A; --red: #E05555;
-  }
-  body { background: transparent; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --gold:#C9A84C;--gold-light:#F5C842;--bg:#080808;--surface:#111111;
+  --surface2:#181818;--surface3:#1E1E1E;--border:#222222;--border2:#2A2A2A;
+  --text:#F0EDE6;--muted:#666660;--green:#3DBA7A;--red:#E05555;
+  --sidebar-w:260px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
 
-  /* ── STEPS ── */
-  #step1, #step2, #step3 { display: none; flex-direction: column; gap: 14px; padding: 20px; }
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh;overflow:hidden;}
 
-  .widget-title {
-    font-size: 13px; font-weight: 700; color: var(--text);
-    letter-spacing: -0.2px;
-  }
-  .widget-title span { color: var(--gold-light); }
+/* ── SIDEBAR ── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sidebar-header{padding:20px 18px 16px;border-bottom:1px solid var(--border);}
+.sidebar-logo{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;}
+.sidebar-logo span{color:var(--gold);}
+.sidebar-title{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-0.3px;line-height:1.3;}
 
-  .step-indicator {
-    display: flex; align-items: center; gap: 6px;
-  }
-  .step-dot {
-    width: 20px; height: 20px; border-radius: 50%;
-    background: var(--surface2); border: 1px solid var(--border);
-    font-size: 10px; font-weight: 700; color: var(--muted);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .step-dot.active { background: var(--gold); border-color: var(--gold); color: #000; }
-  .step-dot.done { background: var(--green); border-color: var(--green); color: #fff; }
-  .step-line { flex: 1; height: 1px; background: var(--border); }
+.sidebar-progress{padding:12px 18px;border-bottom:1px solid var(--border);}
+.sp-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;}
+.sp-bar{height:3px;background:var(--border2);border-radius:2px;overflow:hidden;}
+.sp-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:2px;transition:width 0.4s ease;width:0%;}
 
-  .step-desc {
-    font-size: 12px; color: var(--muted); line-height: 1.6;
-  }
-  .step-desc b { color: var(--text); font-weight: 600; }
+.sidebar-nav{flex:1;overflow-y:auto;padding:8px 0;}
+.sidebar-nav::-webkit-scrollbar{width:3px;}
+.sidebar-nav::-webkit-scrollbar-track{background:transparent;}
+.sidebar-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 
-  .action-btn {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    background: var(--gold); border: none; border-radius: 8px;
-    color: #000; font-family: 'Inter', sans-serif;
-    font-size: 13px; font-weight: 700; padding: 11px 16px;
-    cursor: pointer; transition: background 0.2s; width: 100%;
-    text-decoration: none;
-  }
-  .action-btn:hover { background: var(--gold-light); }
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 18px;cursor:pointer;
+  transition:all 0.15s;position:relative;
+  border-left:2px solid transparent;
+}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:rgba(201,168,76,0.06);border-left-color:var(--gold);color:var(--text);}
+.nav-num{
+  width:22px;height:22px;border-radius:50%;
+  background:var(--surface3);border:1px solid var(--border2);
+  font-size:10px;font-weight:700;color:var(--muted);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all 0.15s;
+}
+.nav-item.active .nav-num,.nav-item.done .nav-num{background:var(--gold);border-color:var(--gold);color:#000;}
+.nav-item.done .nav-num::after{content:'✓';}
+.nav-item.done .nav-num span{display:none;}
+.nav-text{font-size:12px;font-weight:500;color:var(--muted);line-height:1.3;transition:color 0.15s;}
+.nav-item:hover .nav-text,.nav-item.active .nav-text{color:var(--text);}
+.nav-check{margin-left:auto;font-size:11px;color:var(--green);opacity:0;transition:opacity 0.2s;}
+.nav-item.done .nav-check{opacity:1;}
 
-  .action-btn-outline {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    background: transparent; border: 1px solid var(--border); border-radius: 8px;
-    color: var(--text); font-family: 'Inter', sans-serif;
-    font-size: 13px; font-weight: 500; padding: 11px 16px;
-    cursor: pointer; transition: all 0.2s; width: 100%;
-  }
-  .action-btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+.sidebar-footer{padding:14px 18px;border-top:1px solid var(--border);}
+.sf-text{font-size:11px;color:var(--muted);line-height:1.5;}
 
-  .token-input {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 8px; color: var(--text);
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    font-size: 11px; padding: 10px 12px; outline: none;
-    width: 100%; transition: border-color 0.2s;
-  }
-  .token-input:focus { border-color: var(--gold); }
-  .token-input::placeholder { color: var(--muted); }
+/* ── MAIN ── */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column;}
 
-  .input-label {
-    font-size: 10px; font-weight: 600; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 5px;
-  }
+/* ── HOME ── */
+#home{
+  flex:1;overflow-y:auto;padding:40px 48px;
+  display:none;
+}
+#home.active{display:block;}
+#home::-webkit-scrollbar{width:4px;}
+#home::-webkit-scrollbar-track{background:transparent;}
+#home::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 
-  .hint-box {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 12px;
-    font-size: 11px; color: var(--muted); line-height: 1.6;
-  }
-  .hint-box b { color: var(--gold); font-weight: 600; }
+.home-hero{margin-bottom:48px;}
+.home-tag{font-size:10px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:0.2em;margin-bottom:14px;}
+.home-title{font-size:36px;font-weight:800;letter-spacing:-1px;line-height:1.15;margin-bottom:16px;}
+.home-title .g{color:var(--gold-light);}
+.home-desc{font-size:14px;color:var(--muted);line-height:1.8;max-width:560px;}
+.home-quote{
+  margin:32px 0;
+  border-left:2px solid var(--gold);
+  padding:16px 20px;
+  background:rgba(201,168,76,0.04);
+  border-radius:0 8px 8px 0;
+  font-size:14px;color:var(--text);line-height:1.7;font-style:italic;
+}
 
-  .error-msg {
-    font-size: 11px; color: var(--red);
-    text-align: center; display: none;
-  }
+.section-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.16em;margin-bottom:16px;}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
 
-  /* ── LOADING ── */
-  #loading { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 140px; gap: 12px; }
-  .spinner { width: 22px; height: 22px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text { font-size: 12px; color: var(--muted); }
+.chapter-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:20px;cursor:pointer;
+  transition:all 0.2s;position:relative;overflow:hidden;
+}
+.chapter-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--gold),var(--gold-light));
+  opacity:0;transition:opacity 0.2s;
+}
+.chapter-card:hover{border-color:rgba(201,168,76,0.3);background:var(--surface2);}
+.chapter-card:hover::before{opacity:1;}
+.card-num{font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.14em;margin-bottom:10px;}
+.card-title{font-size:14px;font-weight:700;color:var(--text);letter-spacing:-0.2px;margin-bottom:6px;line-height:1.3;}
+.card-sub{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:14px;}
+.card-arrow{font-size:12px;color:var(--gold);font-weight:600;}
+.card-done{
+  position:absolute;top:12px;right:12px;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--green);color:#fff;
+  font-size:10px;display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity 0.2s;
+}
+.chapter-card.done .card-done{opacity:1;}
 
-  /* ── STATS ── */
-  #stats-screen { display: none; flex-direction: column; }
+/* ── CHAPTER ── */
+#chapter{flex:1;overflow:hidden;display:none;flex-direction:column;}
+#chapter.active{display:flex;}
 
-  .stats-topbar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 14px; border-bottom: 1px solid var(--border);
-  }
-  .stats-brand { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
-  .stats-brand span { color: var(--gold); }
-  .disconnect-btn { background: transparent; border: 1px solid var(--border); border-radius: 5px; color: var(--muted); font-size: 10px; padding: 3px 10px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; }
-  .disconnect-btn:hover { border-color: var(--red); color: var(--red); }
+.chapter-topbar{
+  padding:14px 24px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:14px;flex-shrink:0;
+}
+.back-btn{
+  background:transparent;border:1px solid var(--border);
+  border-radius:6px;color:var(--muted);font-size:12px;
+  padding:5px 12px;cursor:pointer;font-family:'Inter',sans-serif;
+  transition:all 0.15s;display:flex;align-items:center;gap:5px;
+}
+.back-btn:hover{border-color:var(--gold);color:var(--gold);}
+.chapter-topbar-info{flex:1;}
+.chapter-topbar-tag{font-size:10px;color:var(--gold);font-weight:600;text-transform:uppercase;letter-spacing:0.14em;}
+.chapter-topbar-title{font-size:14px;font-weight:700;color:var(--text);}
+.chapter-nav-btns{display:flex;gap:6px;}
+.cnav-btn{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:6px;color:var(--muted);font-size:12px;
+  padding:5px 12px;cursor:pointer;font-family:'Inter',sans-serif;
+  transition:all 0.15s;
+}
+.cnav-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold);}
+.cnav-btn:disabled{opacity:0.3;cursor:default;}
 
-  .cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); }
-  .cards-grid-2 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border-top: 1px solid var(--border); }
+/* Chapter progress */
+.chapter-progress{height:2px;background:var(--border);flex-shrink:0;}
+.chapter-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));transition:width 0.3s ease;width:0%;}
 
-  .stat-card { background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 5px; transition: background 0.2s; }
-  .stat-card:hover { background: var(--surface2); }
-  .card-header { display: flex; align-items: center; justify-content: space-between; }
-  .card-label { font-size: 10px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
-  .card-icon { font-size: 13px; opacity: 0.5; }
-  .card-value { font-size: 26px; font-weight: 800; letter-spacing: -0.8px; line-height: 1; color: var(--text); }
-  .card-value.green { color: var(--green); }
-  .card-value.gold { color: var(--gold-light); }
-  .card-value.red { color: var(--red); }
-  .card-sub { font-size: 10px; color: var(--muted); }
+.chapter-content{flex:1;overflow-y:auto;padding:40px 48px;}
+.chapter-content::-webkit-scrollbar{width:4px;}
+.chapter-content::-webkit-scrollbar-track{background:transparent;}
+.chapter-content::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 
-  .stats-bottom { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; border-top: 1px solid var(--border); }
-  .last-updated { font-size: 10px; color: var(--muted); font-family: 'SF Mono', monospace; }
-  .dot-live { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--green); margin-right: 5px; animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  .refresh-btn { background: transparent; border: none; color: var(--gold); font-size: 10px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; }
-  .refresh-btn:hover { color: var(--gold-light); }
+/* Chapter typography */
+.ch-eyebrow{font-size:10px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:0.2em;margin-bottom:12px;}
+.ch-title{font-size:32px;font-weight:800;letter-spacing:-0.8px;line-height:1.2;margin-bottom:8px;}
+.ch-subtitle{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:36px;font-style:italic;}
+.ch-divider{height:1px;background:var(--border);margin:32px 0;}
+
+.ch-section{margin-bottom:32px;}
+.ch-section-title{
+  font-size:13px;font-weight:700;color:var(--text);
+  text-transform:uppercase;letter-spacing:0.1em;
+  margin-bottom:14px;display:flex;align-items:center;gap:8px;
+}
+.ch-section-num{
+  width:20px;height:20px;border-radius:50%;
+  background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);
+  font-size:9px;font-weight:700;color:var(--gold);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.ch-p{font-size:13px;color:var(--muted);line-height:1.9;margin-bottom:12px;}
+.ch-p b{color:var(--text);font-weight:600;}
+.ch-p i{color:var(--text);font-style:italic;}
+
+/* Quote block */
+.ch-quote{
+  border-left:2px solid var(--gold);padding:14px 18px;
+  background:rgba(201,168,76,0.04);border-radius:0 8px 8px 0;
+  margin:20px 0;font-size:13px;color:var(--text);line-height:1.7;font-style:italic;
+}
+
+/* Callout */
+.ch-callout{
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:10px;padding:16px 18px;margin:20px 0;
+}
+.ch-callout-title{font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:10px;}
+.ch-callout-item{
+  display:flex;align-items:flex-start;gap:8px;
+  font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:6px;
+}
+.ch-callout-item:last-child{margin-bottom:0;}
+.ch-callout-item::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;margin-top:1px;}
+
+/* Warning callout */
+.ch-warning{
+  background:rgba(224,85,85,0.05);border:1px solid rgba(224,85,85,0.15);
+  border-radius:10px;padding:14px 18px;margin:20px 0;
+  font-size:12px;color:var(--muted);line-height:1.7;
+}
+.ch-warning b{color:var(--red);}
+
+/* Table */
+.ch-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:12px;}
+.ch-table th{
+  background:var(--surface2);color:var(--muted);
+  font-weight:600;text-align:left;padding:10px 14px;
+  border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;
+}
+.ch-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted);line-height:1.5;}
+.ch-table td:first-child{color:var(--text);font-weight:500;}
+.ch-table tr:last-child td{border-bottom:none;}
+.ch-table tr:hover td{background:var(--surface2);}
+
+/* Emotion→Behavior row */
+.emotion-tag{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--surface3);border:1px solid var(--border2);
+  border-radius:5px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--text);
+}
+
+/* Cycle diagram */
+.ch-cycle{
+  display:flex;align-items:center;flex-wrap:wrap;gap:0;
+  margin:20px 0;background:var(--surface2);
+  border:1px solid var(--border);border-radius:10px;padding:16px;
+}
+.cycle-step{
+  display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:80px;
+}
+.cycle-box{
+  background:var(--surface3);border:1px solid var(--border2);
+  border-radius:7px;padding:8px 10px;font-size:11px;font-weight:600;
+  color:var(--text);text-align:center;line-height:1.3;width:100%;
+}
+.cycle-box.highlight{border-color:rgba(201,168,76,0.4);background:rgba(201,168,76,0.06);color:var(--gold);}
+.cycle-arrow{font-size:14px;color:var(--muted);flex-shrink:0;align-self:center;padding:0 4px;}
+
+/* Check list */
+.ch-check{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:18px;margin:20px 0;
+}
+.ch-check-title{
+  font-size:10px;font-weight:700;color:var(--gold);
+  text-transform:uppercase;letter-spacing:0.16em;margin-bottom:12px;
+}
+.ch-check-item{
+  display:flex;align-items:center;gap:10px;
+  padding:7px 0;border-bottom:1px solid var(--border);
+  font-size:12px;color:var(--muted);
+}
+.ch-check-item:last-child{border-bottom:none;}
+.check-box{
+  width:16px;height:16px;border-radius:4px;
+  border:1px solid var(--border2);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:9px;
+}
+.ch-check-item.rule .check-box{border-color:var(--red);color:var(--red);}
+.ch-check-item.rule .check-box::before{content:'✕';}
+.ch-check-item b{color:var(--text);}
+
+/* Rule box */
+.ch-rule{
+  background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.2);
+  border-radius:10px;padding:16px 18px;margin:20px 0;text-align:center;
+}
+.ch-rule-title{font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.14em;margin-bottom:8px;}
+.ch-rule-text{font-size:13px;color:var(--text);line-height:1.6;font-style:italic;}
+
+/* Summary box */
+.ch-summary{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:24px;margin:32px 0 0;
+}
+.ch-summary-title{font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.14em;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.ch-summary-title::before{content:'✓';width:16px;height:16px;background:var(--green);color:#fff;border-radius:50%;font-size:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ch-summary-text{font-size:13px;color:var(--muted);line-height:1.85;}
+
+/* Mark done btn */
+.mark-done-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:32px;padding:13px;width:100%;
+  background:transparent;border:1px solid var(--border);
+  border-radius:10px;color:var(--muted);font-family:'Inter',sans-serif;
+  font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;
+}
+.mark-done-btn:hover{border-color:var(--green);color:var(--green);}
+.mark-done-btn.done{background:rgba(61,186,122,0.08);border-color:var(--green);color:var(--green);}
 </style>
 </head>
 <body>
+<div class="app">
 
-<!-- STEP 1: Create Integration -->
-<div id="step1">
-  <div style="display:flex;align-items:center;justify-content:space-between;">
-    <div class="widget-title">Flow<span>Trade</span> Stats</div>
-    <div class="step-indicator">
-      <div class="step-dot active" id="dot1">1</div>
-      <div class="step-line"></div>
-      <div class="step-dot" id="dot2">2</div>
-      <div class="step-line"></div>
-      <div class="step-dot" id="dot3">3</div>
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">Flow<span>Trade</span> · Education</div>
+    <div class="sidebar-title">The Psychology of Execution</div>
+  </div>
+  <div class="sidebar-progress">
+    <div class="sp-label"><span>Progress</span><span id="progress-text">0 / 8</span></div>
+    <div class="sp-bar"><div class="sp-fill" id="sp-fill"></div></div>
+  </div>
+  <div class="sidebar-nav" id="sidebar-nav">
+    <div class="nav-item active" onclick="showHome()" id="nav-home" style="border-left:2px solid var(--gold);background:rgba(201,168,76,0.06);">
+      <div class="nav-num" style="background:var(--gold);border-color:var(--gold);color:#000;">⌂</div>
+      <div class="nav-text" style="color:var(--text);">Overview</div>
     </div>
   </div>
-
-  <div class="hint-box">
-    <b>Step 1</b> — Create a Notion Integration to allow the widget to read your trades.<br>
-    Click the button below, create a new integration, then copy your token and come back.
+  <div class="sidebar-footer">
+    <div class="sf-text">Read each chapter and mark it as complete to track your progress.</div>
   </div>
-
-  <a class="action-btn" href="https://www.notion.so/my-integrations" target="_blank">
-    Open Notion Integrations →
-  </a>
-
-  <div class="input-label">Paste your Integration Token here</div>
-  <input class="token-input" id="token-input" type="password" placeholder="secret_xxxxxxxxxxxxxxxxxxxx" />
-
-  <button class="action-btn" onclick="goStep2()">Continue →</button>
-  <div class="error-msg" id="err1">Please paste your Integration Token first.</div>
 </div>
 
-<!-- STEP 2: Connect to Database -->
-<div id="step2">
-  <div style="display:flex;align-items:center;justify-content:space-between;">
-    <div class="widget-title">Flow<span>Trade</span> Stats</div>
-    <div class="step-indicator">
-      <div class="step-dot done" id="dot1b">✓</div>
-      <div class="step-line"></div>
-      <div class="step-dot active" id="dot2b">2</div>
-      <div class="step-line"></div>
-      <div class="step-dot" id="dot3b">3</div>
+<!-- MAIN -->
+<div class="main">
+
+  <!-- HOME -->
+  <div id="home" class="active">
+    <div class="home-hero">
+      <div class="home-tag">FlowTrade Journal · Education</div>
+      <div class="home-title">The Psychology of<br><span class="g">Execution</span></div>
+      <div class="home-desc">Trading psychology is often misunderstood. Knowledge alone rarely creates consistency. This guide explains why — not through motivation or vague advice, but through patterns.</div>
+      <div class="home-quote">"Consistency rarely comes from trying harder. More often, it comes from understanding yourself clearly enough to stop emotions from quietly changing standards."</div>
     </div>
+    <div class="section-label">8 Chapters</div>
+    <div class="cards-grid" id="cards-grid"></div>
   </div>
 
-  <div class="hint-box">
-    <b>Step 2</b> — Connect your integration to Trade Log.<br>
-    Open <b>Trade Log</b> in Notion → click <b>···</b> top right → <b>Connections</b> → select your integration.
+  <!-- CHAPTER -->
+  <div id="chapter">
+    <div class="chapter-topbar">
+      <button class="back-btn" onclick="showHome()">← Back</button>
+      <div class="chapter-topbar-info">
+        <div class="chapter-topbar-tag" id="ch-tag"></div>
+        <div class="chapter-topbar-title" id="ch-top-title"></div>
+      </div>
+      <div class="chapter-nav-btns">
+        <button class="cnav-btn" id="prev-btn" onclick="navigate(-1)">← Prev</button>
+        <button class="cnav-btn" id="next-btn" onclick="navigate(1)">Next →</button>
+      </div>
+    </div>
+    <div class="chapter-progress"><div class="chapter-progress-fill" id="ch-progress"></div></div>
+    <div class="chapter-content" id="chapter-content" onscroll="updateReadProgress()"></div>
   </div>
 
-  <button class="action-btn-outline" onclick="goStep3()">
-    I connected it → Continue
-  </button>
-
-  <button class="action-btn-outline" style="font-size:12px;padding:8px;" onclick="goStep1()">
-    ← Back
-  </button>
 </div>
-
-<!-- STEP 3: Enter Database ID -->
-<div id="step3">
-  <div style="display:flex;align-items:center;justify-content:space-between;">
-    <div class="widget-title">Flow<span>Trade</span> Stats</div>
-    <div class="step-indicator">
-      <div class="step-dot done">✓</div>
-      <div class="step-line"></div>
-      <div class="step-dot done">✓</div>
-      <div class="step-line"></div>
-      <div class="step-dot active">3</div>
-    </div>
-  </div>
-
-  <div class="hint-box">
-    <b>Step 3</b> — Find your Trade Log Database ID.<br>
-    Open <b>Trade Log</b> in browser → copy the ID from the URL:<br>
-    notion.so/<b>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</b>?v=...
-  </div>
-
-  <div class="input-label">Trade Log Database ID</div>
-  <input class="token-input" id="db-input" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
-
-  <button class="action-btn" onclick="connect()">Connect & Load Stats →</button>
-  <div class="error-msg" id="err3">Please enter your Database ID.</div>
-</div>
-
-<!-- LOADING -->
-<div id="loading">
-  <div class="spinner"></div>
-  <div class="loading-text">Fetching your stats...</div>
-</div>
-
-<!-- STATS -->
-<div id="stats-screen">
-  <div class="stats-topbar">
-    <div class="stats-brand">Flow<span>Trade</span> · All Time</div>
-    <button class="disconnect-btn" onclick="disconnect()">Disconnect</button>
-  </div>
-  <div class="cards-grid">
-    <div class="stat-card">
-      <div class="card-header"><div class="card-label">Win Rate</div><div class="card-icon">🎯</div></div>
-      <div class="card-value green" id="s-winrate">—</div>
-      <div class="card-sub">excl. BE trades</div>
-    </div>
-    <div class="stat-card">
-      <div class="card-header"><div class="card-label">Total PnL</div><div class="card-icon">💰</div></div>
-      <div class="card-value" id="s-pnl">—</div>
-      <div class="card-sub" id="s-pnl-sub">all time</div>
-    </div>
-    <div class="stat-card">
-      <div class="card-header"><div class="card-label">Total Trades</div><div class="card-icon">📊</div></div>
-      <div class="card-value" id="s-trades">—</div>
-      <div class="card-sub" id="s-trades-sub">completed</div>
-    </div>
-    <div class="stat-card">
-      <div class="card-header"><div class="card-label">Avg R:R</div><div class="card-icon">⚖️</div></div>
-      <div class="card-value gold" id="s-rr">—</div>
-      <div class="card-sub">per trade</div>
-    </div>
-  </div>
-  <div class="cards-grid-2">
-    <div class="stat-card">
-      <div class="card-header"><div class="card-label">Wins</div><div class="card-icon">✅</div></div>
-      <div class="card-value green" id="s-wins">—</div>
-      <div class="card-sub">winning trades</div>
-    </div>
-    <div class="stat-card">
-      <div class="card-header"><div class="card-label">Losses</div><div class="card-icon">❌</div></div>
-      <div class="card-value red" id="s-losses">—</div>
-      <div class="card-sub">losing trades</div>
-    </div>
-    <div class="stat-card">
-      <div class="card-header"><div class="card-label">Break Even</div><div class="card-icon">⚖️</div></div>
-      <div class="card-value" id="s-be">—</div>
-      <div class="card-sub">BE trades</div>
-    </div>
-  </div>
-  <div class="stats-bottom">
-    <div class="last-updated"><span class="dot-live"></span><span id="last-updated">Just updated</span></div>
-    <button class="refresh-btn" onclick="loadStats()">↻ Refresh</button>
-  </div>
 </div>
 
 <script>
-var PROXY = 'https://api.allorigins.win/raw?url=';
+var done = {};
+var currentChapter = -1;
 
-function show(id) {
-  ['step1','step2','step3','loading','stats-screen'].forEach(function(s) {
-    var el = document.getElementById(s);
-    if(el) el.style.display = s === id ? 'flex' : 'none';
-  });
-}
-
-function goStep1() { show('step1'); }
-function goStep2() {
-  var token = document.getElementById('token-input').value.trim();
-  var err = document.getElementById('err1');
-  if(!token || !token.startsWith('secret_')) {
-    err.textContent = 'Please paste a valid Integration Token (starts with secret_).';
-    err.style.display = 'block'; return;
+var CHAPTERS = [
+  {
+    tag:'Chapter 01',
+    title:'Why Traders Break Their Own Rules',
+    sub:'Understanding why emotions quietly take control of execution.',
+    emoji:'⚖️',
+    color:'#E05555',
+    sections:[
+      {num:'1',title:'Truth Statement',content:`<p class="ch-p">Most traders do not fail because they lack knowledge. Many already know exactly what they should be doing. They understand risk management, recognize their setups, and can clearly explain their trading rules when emotions are absent.</p><p class="ch-p">Yet when the market opens, something begins to shift. A setup that normally would not qualify suddenly feels <b>"good enough."</b> A trade is entered early. Risk becomes negotiable. Patience quietly disappears and urgency takes its place.</p><div class="ch-quote">"You are not breaking rules because you are lazy or incapable of discipline. You break rules because emotions slowly change your standards in real time."</div>`},
+      {num:'2',title:'Why This Happens',content:`<p class="ch-p">You begin the session with clarity, structure, and patience. But as emotions enter the process, your brain gradually stops prioritizing logic and begins prioritizing <b>emotional relief.</b></p><table class="ch-table"><thead><tr><th>Emotion</th><th>Hidden Behavior</th></tr></thead><tbody><tr><td>⚠️ Fear</td><td>Need for certainty</td></tr><tr><td>⚠️ Boredom</td><td>Unnecessary entries</td></tr><tr><td>⚠️ Frustration</td><td>Revenge trading</td></tr><tr><td>⚠️ Overconfidence</td><td>Risk suddenly feels smaller</td></tr></tbody></table><p class="ch-p">The dangerous part is that emotions rarely announce themselves clearly. Instead, they <b>disguise themselves as logic:</b></p><div class="ch-callout"><div class="ch-callout-title">Emotional Logic Disguise</div><div class="ch-callout-item">This setup is close enough.</div><div class="ch-callout-item">I missed the last move.</div><div class="ch-callout-item">I'll manage this trade manually.</div><div class="ch-callout-item">Just this once.</div></div>`},
+      {num:'3',title:'The Rule-Breaking Cycle',content:`<div class="ch-cycle"><div class="cycle-step"><div class="cycle-box">Trading Plan</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box highlight">Emotion</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Rule Negotiation</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Impulsive Trade</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Regret</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">More Discipline</div></div></div><p class="ch-p">Most traders repeat this cycle without noticing. The problem is not intelligence. The problem is that every emotional decision slightly <b>weakens your standards</b>, until rule-breaking starts feeling normal.</p>`},
+      {num:'4',title:'Tactical Fix — Execution Protocol',content:`<div class="ch-check"><div class="ch-check-title">Execution Check</div><div class="ch-check-item"><div class="check-box">✓</div>Setup fully valid?</div><div class="ch-check-item"><div class="check-box">✓</div>Risk predefined?</div><div class="ch-check-item"><div class="check-box">✓</div>Emotion under control?</div><div class="ch-check-item"><div class="check-box">✓</div>Following the system?</div></div><div class="ch-warning"><b>IF ONE IS MISSING → NO TRADE</b></div><div class="ch-rule"><div class="ch-rule-title">The 10-Second Rule</div><div class="ch-rule-text">Before every trade, pause for 10 seconds and ask:<br><br>"Am I executing my system — or reacting to how I feel?"<br><br>If the answer feels unclear: <b>Wait.</b></div></div>`},
+      {num:'5',title:'Reflection',content:`<p class="ch-p">At the end of each trading session, ask yourself:</p><div class="ch-quote">"Where did I stop executing and start reacting?"</div><p class="ch-p">Then reflect on what actually influenced your decisions. Not the market, not the setup, but the <b>emotional state behind the action.</b> Was it fear of missing out, boredom, frustration after a loss, impatience, or overconfidence after a win?</p><p class="ch-p">Most traders repeat the same mistakes not because they lack intelligence, but because <b>emotional patterns remain invisible.</b></p>`}
+    ],
+    summary:'Breaking rules in trading is rarely a knowledge problem. The real issue begins when emotions quietly start changing standards in real time. The solution is not stronger willpower, but structure. When rules become non-negotiable and decisions stop depending on emotion, consistency becomes possible.'
+  },
+  {
+    tag:'Chapter 02',title:'The FOMO Trap',sub:'Understanding why urgency quietly disguises itself as opportunity.',emoji:'🏃',color:'#F5A623',
+    sections:[
+      {num:'1',title:'Truth Statement',content:`<p class="ch-p">Most traders believe FOMO is simply the fear of missing out. But in trading, FOMO runs much deeper. It is rarely about the setup itself. It is about the <b>emotional discomfort of watching opportunity move without you.</b></p><div class="ch-callout"><div class="ch-callout-title">The Internal Dialogue</div><div class="ch-callout-item">I knew this would happen.</div><div class="ch-callout-item">I can still catch it.</div><div class="ch-callout-item">I can't miss another move.</div></div><div class="ch-quote">"In trading, urgency often disguises itself as opportunity."</div>`},
+      {num:'2',title:'Why This Happens',content:`<p class="ch-p">The human brain dislikes uncertainty. But even more than uncertainty, it dislikes the feeling of <b>being left behind.</b> When traders miss a move, the emotional response often feels bigger than the event itself.</p><p class="ch-p">The moment urgency takes control, traders stop asking: <i>"Is this still my setup?"</i> and start asking: <i>"How do I stop feeling this discomfort?"</i></p><div class="ch-warning"><b>The trade becomes emotional relief. Not execution.</b></div>`},
+      {num:'3',title:'The FOMO Cycle',content:`<div class="ch-cycle"><div class="cycle-step"><div class="cycle-box">Missed Setup</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box highlight">FOMO</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Urgency</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Forced Entry</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Regret</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Chasing Again</div></div></div><p class="ch-p">Professional traders understand: <b>Missing one trade means nothing. Protecting execution means everything.</b></p>`},
+      {num:'4',title:'Tactical Fix — The Pause Protocol',content:`<div class="ch-check"><div class="ch-check-title">FOMO Check</div><div class="ch-check-item"><div class="check-box">✓</div>Is this still my setup?</div><div class="ch-check-item"><div class="check-box">✓</div>Would I take this trade if price was calm?</div><div class="ch-check-item"><div class="check-box">✓</div>Am I reacting to opportunity or urgency?</div></div><div class="ch-warning"><b>IF URGENCY IS DRIVING THE DECISION → WAIT</b></div><div class="ch-rule"><div class="ch-rule-title">The 60-Second Rule</div><div class="ch-rule-text">Whenever you feel pressure to enter immediately, step away for 60 seconds and ask:<br><br>"Would I still want this trade if I had never missed the first move?"</div></div>`},
+      {num:'5',title:'Reflection',content:`<p class="ch-p">At the end of your trading session, ask yourself:</p><div class="ch-quote">"Did I enter because the setup was valid — or because I felt pressure?"</div><p class="ch-p">FOMO becomes dangerous when it goes unnoticed. But once urgency becomes recognizable, it slowly <b>loses control over execution.</b></p>`}
+    ],
+    summary:'FOMO is rarely about opportunity itself. More often, it is the emotional discomfort of watching the market move without you. The solution is awareness and structure. When traders learn to pause, question urgency, and separate opportunity from emotional pressure, patience becomes easier and execution becomes cleaner.'
+  },
+  {
+    tag:'Chapter 03',title:'Trading to Prove Something',sub:'Understanding why trading becomes dangerous when self-worth enters the process.',emoji:'🪞',color:'#9B59B6',
+    sections:[
+      {num:'1',title:'Truth Statement',content:`<p class="ch-p">Not every bad trade comes from poor analysis. Sometimes the real reason sits much deeper. A trade is taken not because the setup is truly valid, but because <b>something inside feels the need to prove itself.</b></p><div class="ch-callout"><div class="ch-callout-title">The Internal Pressure</div><div class="ch-callout-item">I need to make this back.</div><div class="ch-callout-item">I know I'm better than this.</div><div class="ch-callout-item">I just need one good trade.</div></div><div class="ch-quote">"At that moment, the market quietly becomes more than a market. It becomes proof."</div>`},
+      {num:'2',title:'Why This Happens',content:`<p class="ch-p">The mind naturally wants emotional balance. After losses, frustration, or disappointment, there is often an uncomfortable feeling that something needs to be fixed.</p><table class="ch-table"><thead><tr><th>Emotional State</th><th>What It Feels Like</th><th>What Actually Happens</th></tr></thead><tbody><tr><td>Frustration</td><td>"I need to recover."</td><td>Patience disappears</td></tr><tr><td>Ego Pressure</td><td>"I need to prove I'm good."</td><td>Risk feels smaller</td></tr><tr><td>Emotional Urgency</td><td>"One good trade fixes everything."</td><td>Execution becomes reactive</td></tr></tbody></table>`},
+      {num:'3',title:'The Validation Cycle',content:`<div class="ch-cycle"><div class="cycle-step"><div class="cycle-box">Loss</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box highlight">Need to Prove</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Emotional Pressure</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Forced Trade</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">More Frustration</div></div></div><div class="ch-quote">"One trade changes nothing. Consistent execution changes everything. The objective is never to prove yourself — only to protect the process."</div>`},
+      {num:'4',title:'Tactical Fix — The Intent Check',content:`<div class="ch-check"><div class="ch-check-title">Intent Check</div><div class="ch-check-item"><div class="check-box">✓</div>Am I following my setup?</div><div class="ch-check-item"><div class="check-box">✓</div>Would I take this trade if I felt calm?</div><div class="ch-check-item"><div class="check-box">✓</div>Am I trading to execute or to recover?</div></div><div class="ch-warning"><b>IF EMOTION IS DRIVING THE DECISION → WAIT</b></div><div class="ch-rule"><div class="ch-rule-title">The One-Question Rule</div><div class="ch-rule-text">"If I felt emotionally neutral right now, would I still take this trade?"</div></div>`},
+      {num:'5',title:'Reflection',content:`<div class="ch-quote">"Did I trade to follow my system — or to prove something?"</div><p class="ch-p">Emotional trading becomes dangerous when it quietly turns performance into identity. But the moment intention becomes visible, emotional pressure slowly <b>loses influence over execution.</b></p>`}
+    ],
+    summary:'Trading becomes dangerous when execution quietly turns into emotional validation. The solution is not emotional suppression, but awareness and structure. When trading stops being a way to repair emotions and returns to being a process of execution, clarity improves and consistency becomes possible.'
+  },
+  {
+    tag:'Chapter 04',title:'Why Trading Feels Different After Losses',sub:'Understanding how losses quietly change perception, confidence, and decision-making.',emoji:'📉',color:'#E05555',
+    sections:[
+      {num:'1',title:'Truth Statement',content:`<p class="ch-p">Losses do more than affect a trading account. <b>They affect perception.</b> After a losing streak, the market often begins to feel different. Setups that once felt clear suddenly create hesitation. Patience becomes harder. Risk feels heavier.</p><div class="ch-quote">"Without noticing it, trading slowly stops becoming execution and starts becoming emotional recovery."</div>`},
+      {num:'2',title:'Why This Happens',content:`<table class="ch-table"><thead><tr><th>Before Losses</th><th>After Emotional Losses</th></tr></thead><tbody><tr><td>Clear execution</td><td>Hesitation</td></tr><tr><td>Patience</td><td>Urgency</td></tr><tr><td>Trust in the process</td><td>Self-doubt</td></tr><tr><td>Stable risk tolerance</td><td>Fear or overtrading</td></tr></tbody></table><p class="ch-p">Instead of asking <i>"Does this fit my system?"</i> the mind slowly starts asking: <i>"Can this trade make me feel better?"</i> That is the hidden shift.</p>`},
+      {num:'3',title:'The Drawdown Cycle',content:`<div class="ch-cycle"><div class="cycle-step"><div class="cycle-box">Losses</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box highlight">Emotional Pressure</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Forced Trades</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">More Losses</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Self-Doubt</div></div></div><div class="ch-quote">"Recovery should never come from pressure. Recovery comes from stability."</div>`},
+      {num:'4',title:'Tactical Fix — Recovery Protocol',content:`<div class="ch-check"><div class="ch-check-title">Recovery Check</div><div class="ch-check-item"><div class="check-box">✓</div>Am I calm or emotionally reactive?</div><div class="ch-check-item"><div class="check-box">✓</div>Would I take this trade if I was green today?</div><div class="ch-check-item"><div class="check-box">✓</div>Am I following my system or chasing recovery?</div></div><div class="ch-warning"><b>IF RECOVERY FEELS URGENT → PAUSE</b></div><div class="ch-rule"><div class="ch-rule-title">The One-Day Reset Rule</div><div class="ch-rule-text">"If money was removed from the equation, would this still be a good trade?"<br><br><b>A bad day does not destroy consistency.<br>Emotional reactions to bad days often do.</b></div></div>`},
+      {num:'5',title:'Reflection',content:`<div class="ch-quote">"Did I trade to recover emotionally — or to follow my process?"</div><p class="ch-p">Recovery begins the moment emotional pressure becomes visible. The objective is not to avoid losses, but to <b>prevent losses from quietly controlling future decisions.</b></p>`}
+    ],
+    summary:'Losses change more than results. They quietly change perception, confidence, and decision-making. The solution is not trading harder or recovering faster, but rebuilding stability through awareness and structure. Consistency returns when emotional pressure stops controlling decisions.'
+  },
+  {
+    tag:'Chapter 05',title:'Why Doing Nothing Feels So Difficult',sub:'Understanding why staying out of the market often feels harder than taking a trade.',emoji:'⏸️',color:'#3DBA7A',
+    sections:[
+      {num:'1',title:'Truth Statement',content:`<p class="ch-p">One of the least discussed realities in trading is that <b>doing nothing often feels emotionally uncomfortable</b>, especially during slow sessions, unclear conditions, or periods without opportunity.</p><div class="ch-quote">"In trading: activity and progress are not the same thing. Sometimes, the highest-quality decision is doing nothing at all."</div>`},
+      {num:'2',title:'Why This Happens',content:`<table class="ch-table"><thead><tr><th>Emotional State</th><th>Hidden Thought</th><th>Common Result</th></tr></thead><tbody><tr><td>Boredom</td><td>"I should be doing something."</td><td>Forced entries</td></tr><tr><td>Restlessness</td><td>"I'm wasting time."</td><td>Lower standards</td></tr><tr><td>Impatience</td><td>"Something must happen soon."</td><td>Poor timing</td></tr><tr><td>Over-focus</td><td>"Maybe I'm missing something."</td><td>Over-analysis</td></tr></tbody></table>`},
+      {num:'3',title:'The Action Trap',content:`<div class="ch-cycle"><div class="cycle-step"><div class="cycle-box">No Setup</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box highlight">Restlessness</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Need For Action</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Forced Trade</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Regret</div></div></div><div class="ch-quote">"A trade is not required every day. Patience is also execution."</div>`},
+      {num:'4',title:'Tactical Fix — Stillness Protocol',content:`<div class="ch-check"><div class="ch-check-title">Stillness Check</div><div class="ch-check-item"><div class="check-box">✓</div>Am I bored or genuinely seeing opportunity?</div><div class="ch-check-item"><div class="check-box">✓</div>Would I take this trade if I had already traded today?</div><div class="ch-check-item"><div class="check-box">✓</div>Am I lowering standards to feel productive?</div><div class="ch-check-item"><div class="check-box">✓</div>Is staying flat the better decision?</div></div><div class="ch-warning"><b>IF ACTION FEELS URGENT → WAIT</b></div><div class="ch-rule"><div class="ch-rule-title">The Flat Position Rule</div><div class="ch-rule-text">"If I already had enough profit today, would I still take this trade?"<br><br><b>Being flat is also a position. Waiting is often part of the edge.</b></div></div>`},
+      {num:'5',title:'Reflection',content:`<div class="ch-quote">"Did I trade because opportunity appeared — or because waiting felt uncomfortable?"</div><p class="ch-p">Consistency improves when waiting stops feeling like failure. The objective is not to trade more, but to trade with <b>higher quality and stronger patience.</b></p>`}
+    ],
+    summary:'Doing nothing feels difficult because the mind naturally seeks stimulation, progress, and certainty. The solution is not stronger discipline, but greater comfort with waiting. When inactivity stops feeling uncomfortable, patience improves, standards stay higher, and execution becomes significantly cleaner.'
+  },
+  {
+    tag:'Chapter 06',title:"Why You Can't Trust Yourself",sub:'Understanding why self-doubt quietly changes execution after mistakes, losses, or inconsistency.',emoji:'🔍',color:'#C9A84C',
+    sections:[
+      {num:'1',title:'Truth Statement',content:`<p class="ch-p">One of the most frustrating experiences in trading is <b>no longer trusting your own decisions.</b> A setup appears, but hesitation follows. A trade that once looked clear suddenly feels uncertain.</p><div class="ch-quote">"Self-trust rarely disappears overnight. It erodes slowly. A few emotional trades. A broken rule. Several avoidable mistakes."</div>`},
+      {num:'2',title:'Why This Happens',content:`<table class="ch-table"><thead><tr><th>Internal Feeling</th><th>Common Reaction</th><th>Result</th></tr></thead><tbody><tr><td>Self-doubt</td><td>Hesitation</td><td>Missed setups</td></tr><tr><td>Fear of being wrong again</td><td>Early exits</td><td>Reduced profits</td></tr><tr><td>Lack of trust</td><td>Constant changes</td><td>Inconsistency</td></tr><tr><td>Emotional discomfort</td><td>Overthinking</td><td>Delayed execution</td></tr></tbody></table>`},
+      {num:'3',title:'The Self-Trust Cycle',content:`<div class="ch-cycle"><div class="cycle-step"><div class="cycle-box">Mistake</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box highlight">Self-Doubt</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Overthinking</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Changed Execution</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Less Self-Trust</div></div></div><div class="ch-quote">"Self-trust is not rebuilt through perfect trades. It is rebuilt through consistent behavior."</div>`},
+      {num:'4',title:'Tactical Fix — Self-Trust Rebuild',content:`<div class="ch-check"><div class="ch-check-title">Self-Trust Check</div><div class="ch-check-item"><div class="check-box">✓</div>Did I follow the plan?</div><div class="ch-check-item"><div class="check-box">✓</div>Did I respect risk?</div><div class="ch-check-item"><div class="check-box">✓</div>Did I stay consistent?</div><div class="ch-check-item"><div class="check-box">✓</div>Was this decision emotional or objective?</div></div><div class="ch-rule"><div class="ch-rule-title">Progress = Execution, Not Outcome</div><div class="ch-rule-text">The Small Win Rule:<br><br>"What would rebuilding trust look like today?"<br><br>Sometimes the answer is: respecting risk, taking only valid setups, finishing the day disciplined.</div></div>`},
+      {num:'5',title:'Reflection',content:`<div class="ch-quote">"Did I trade based on my plan — or based on fear of making another mistake?"</div><p class="ch-p">Self-trust improves when behavior becomes consistent again. The objective is not to avoid mistakes completely, but to prove to yourself that <b>emotions no longer control decisions.</b></p>`}
+    ],
+    summary:"Losing trust in yourself is one of the quietest psychological problems in trading because it often disguises itself as caution or over-analysis. Self-trust returns through consistent behavior, repeated discipline, and evidence that execution can remain stable even when emotions feel uncertain."
+  },
+  {
+    tag:'Chapter 07',title:'The Perfection Trap',sub:'Understanding why waiting for perfect certainty quietly destroys execution.',emoji:'🎯',color:'#3498DB',
+    sections:[
+      {num:'1',title:'Truth Statement',content:`<p class="ch-p">Not every trading mistake comes from acting too quickly. Sometimes, the problem is the exact opposite: <b>waiting too long.</b> The desire for better confirmation, cleaner timing, or stronger certainty often feels responsible.</p><div class="ch-quote">"Markets rarely provide certainty. They provide probability, and probability almost never feels perfect."</div>`},
+      {num:'2',title:'Why This Happens',content:`<table class="ch-table"><thead><tr><th>Healthy Execution</th><th>The Perfection Trap</th></tr></thead><tbody><tr><td>Accepts probability</td><td>Needs certainty</td></tr><tr><td>Executes valid setups</td><td>Waits for ideal timing</td></tr><tr><td>Understands imperfection</td><td>Seeks flawless confirmation</td></tr><tr><td>Manages risk</td><td>Avoids emotional discomfort</td></tr></tbody></table>`},
+      {num:'3',title:'The Perfection Cycle',content:`<div class="ch-cycle"><div class="cycle-step"><div class="cycle-box">Valid Setup</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box highlight">Need More Confirmation</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Delay</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Missed Opportunity</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Frustration</div></div></div><div class="ch-quote">"Valid matters more than perfect."</div>`},
+      {num:'4',title:'Tactical Fix — Probability Check',content:`<div class="ch-check"><div class="ch-check-title">Probability Check</div><div class="ch-check-item"><div class="check-box">✓</div>Does this meet my criteria?</div><div class="ch-check-item"><div class="check-box">✓</div>Am I waiting for certainty or truly invalid setup?</div><div class="ch-check-item"><div class="check-box">✓</div>Is this invalid — or simply imperfect?</div><div class="ch-check-item"><div class="check-box">✓</div>Would I normally take this setup?</div></div><div class="ch-rule"><div class="ch-rule-title">The 80% Rule — VALID > PERFECT</div><div class="ch-rule-text">"Am I avoiding this trade because it breaks my rules — or because it doesn't feel perfect?"<br><br>A setup does not need flawless timing to deserve execution. It only needs to meet the standards defined by your system.</div></div>`},
+      {num:'5',title:'Reflection',content:`<div class="ch-quote">"Did I miss opportunity because I wanted certainty?"</div><p class="ch-p">Growth begins when execution stops depending on perfect conditions and starts relying on <b>consistent standards.</b></p>`}
+    ],
+    summary:"The perfection trap begins when caution quietly turns into hesitation. The solution is not lowering standards, but learning to separate quality from perfection. Long-term consistency comes from accepting imperfect conditions while still executing a clear process with discipline."
+  },
+  {
+    tag:'Chapter 08',title:'Why You Keep Becoming a Different Trader',sub:'Understanding why consistency disappears when emotions quietly begin changing standards.',emoji:'🔄',color:'#1ABC9C',
+    sections:[
+      {num:'1',title:'Truth Statement',content:`<p class="ch-p">One of the most confusing experiences in trading is realizing that <b>you do not always behave like the same person.</b> Some days feel clear. Then suddenly, something changes.</p><div class="ch-quote">"Inconsistency rarely comes from a lack of knowledge. More often, it comes from changing emotional states quietly changing standards."</div>`},
+      {num:'2',title:'Why This Happens',content:`<table class="ch-table"><thead><tr><th>Emotional State</th><th>Identity Shift</th><th>Result</th></tr></thead><tbody><tr><td>Fear</td><td>Defensive trader</td><td>Hesitation</td></tr><tr><td>Frustration</td><td>Reactive trader</td><td>Forced trades</td></tr><tr><td>Excitement</td><td>Overconfident trader</td><td>Lower standards</td></tr><tr><td>Self-doubt</td><td>Hesitant trader</td><td>Missed execution</td></tr></tbody></table><p class="ch-p">The problem is not emotion itself. The problem begins when <b>standards quietly begin changing with emotion.</b></p>`},
+      {num:'3',title:'The Identity Shift Cycle',content:`<div class="ch-cycle"><div class="cycle-step"><div class="cycle-box highlight">Emotion</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Changing Standards</div></div><div class="cycle-arrow">→</div><div class="cycle-step"><div class="cycle-box">Different Trader</div></div></div><div class="ch-quote">"Emotions are temporary. Standards should not be."</div>`},
+      {num:'4',title:'Tactical Fix — Identity Anchor',content:`<div class="ch-check"><div class="ch-check-title">Identity Check — Before Every Session</div><div class="ch-check-item"><div class="check-box">✓</div>I follow my system.</div><div class="ch-check-item"><div class="check-box">✓</div>I respect risk.</div><div class="ch-check-item"><div class="check-box">✓</div>I do not chase.</div><div class="ch-check-item"><div class="check-box">✓</div>I stay patient under uncertainty.</div><div class="ch-check-item"><div class="check-box">✓</div>I protect consistency over emotion.</div></div><div class="ch-rule"><div class="ch-rule-title">The Identity Anchor</div><div class="ch-rule-text">Before every session, ask:<br><br>"Who am I when I trade?"<br><br>The purpose is not motivation — the purpose is <b>stability.</b></div></div>`},
+      {num:'5',title:'Reflection',content:`<div class="ch-quote">"Which version of myself showed up today?"</div><p class="ch-p">Growth begins when consistency stops depending on mood and starts depending on <b>identity.</b> Over time, emotional reactions lose power because standards stop changing with them.</p>`}
+    ],
+    summary:"Trading becomes exhausting when execution changes with emotion. The solution is not becoming emotionless, but building stability that survives emotional change. When standards stop moving and identity becomes clearer, consistency becomes easier because execution no longer depends on how the day feels."
   }
-  err.style.display = 'none';
-  try { localStorage.setItem('ft_token', token); } catch(e){}
-  show('step2');
-}
-function goStep3() { show('step3'); }
+];
 
-function disconnect() {
-  try { localStorage.removeItem('ft_token'); localStorage.removeItem('ft_db'); } catch(e){}
-  show('step1');
-}
-
-function formatPnl(val) {
-  var abs = Math.abs(val);
-  var str = abs >= 1000 ? '$' + (abs/1000).toFixed(1) + 'K' : '$' + abs.toFixed(0);
-  return (val < 0 ? '-' : '+') + str.replace('$','$');
-}
-
-async function loadStats() {
-  var token, db;
-  try { token = localStorage.getItem('ft_token'); db = localStorage.getItem('ft_db'); } catch(e){}
-  if(!token || !db) { show('step1'); return; }
-
-  show('loading');
-  try {
-    var url = 'https://api.notion.com/v1/databases/' + db + '/query';
-    var results = [];
-    var cursor = null;
-    do {
-      var body = { page_size: 100 };
-      if(cursor) body.start_cursor = cursor;
-      var resp = await fetch(PROXY + encodeURIComponent(url), {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json', 'Notion-Version':'2022-06-28', 'Authorization':'Bearer ' + token },
-        body: JSON.stringify(body)
-      });
-      var data = await resp.json();
-      results = results.concat(data.results || []);
-      cursor = data.has_more ? data.next_cursor : null;
-    } while(cursor);
-
-    var wins=0, losses=0, be=0, pnl=0, rrSum=0, rrCount=0;
-    results.forEach(function(p) {
-      var props = p.properties;
-      var status = props['Status'] && props['Status'].select ? props['Status'].select.name : '';
-      var pl = props['Profit/Loss ($)'] && props['Profit/Loss ($)'].number !== null ? (props['Profit/Loss ($)'].number || 0) : null;
-      var rr = props['R:R'] && props['R:R'].formula ? props['R:R'].formula.number : null;
-      if(status === 'Win') { wins++; if(pl !== null) pnl += pl; }
-      else if(status === 'Loss') { losses++; if(pl !== null) pnl += pl; }
-      else if(status === 'BE') { be++; if(pl !== null) pnl += pl; }
-      else return;
-      if(rr !== null && rr > 0) { rrSum += rr; rrCount++; }
-    });
-
-    var tradeable = wins + losses;
-    var wr = tradeable > 0 ? (wins / tradeable * 100) : 0;
-    var avgRR = rrCount > 0 ? rrSum / rrCount : 0;
-
-    var pnlEl = document.getElementById('s-pnl');
-    pnlEl.textContent = formatPnl(pnl);
-    pnlEl.className = 'card-value ' + (pnl >= 0 ? 'green' : 'red');
-
-    var wrEl = document.getElementById('s-winrate');
-    wrEl.textContent = wr.toFixed(1) + '%';
-    wrEl.className = 'card-value ' + (wr >= 50 ? 'green' : 'red');
-
-    document.getElementById('s-trades').textContent = wins + losses + be;
-    document.getElementById('s-trades-sub').textContent = wins + 'W · ' + losses + 'L · ' + be + ' BE';
-    document.getElementById('s-rr').textContent = avgRR > 0 ? '1:' + avgRR.toFixed(1) : 'N/A';
-    document.getElementById('s-wins').textContent = wins;
-    document.getElementById('s-losses').textContent = losses;
-    document.getElementById('s-be').textContent = be;
-
-    var now = new Date();
-    document.getElementById('last-updated').textContent = 'Updated ' + now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
-
-    show('stats-screen');
-  } catch(e) {
-    show('step1');
-  }
-}
-
-async function connect() {
-  var dbRaw = document.getElementById('db-input').value.trim();
-  var err = document.getElementById('err3');
-  if(!dbRaw) { err.textContent = 'Please enter your Database ID.'; err.style.display = 'block'; return; }
-  err.style.display = 'none';
-
-  // Clean and format ID
-  var db = dbRaw.replace(/-/g,'').replace(/[^a-f0-9]/gi,'');
-  if(db.length === 32) {
-    db = db.slice(0,8)+'-'+db.slice(8,12)+'-'+db.slice(12,16)+'-'+db.slice(16,20)+'-'+db.slice(20);
-  } else { db = dbRaw; }
-
-  try { localStorage.setItem('ft_db', db); } catch(e){}
-  await loadStats();
-}
-
-// Init
-window.addEventListener('load', function() {
-  var token, db;
-  try { token = localStorage.getItem('ft_token'); db = localStorage.getItem('ft_db'); } catch(e){}
-  if(token && db) { loadStats(); }
-  else { show('step1'); }
+// Build sidebar nav items
+var nav = document.getElementById('sidebar-nav');
+CHAPTERS.forEach(function(ch, i) {
+  var item = document.createElement('div');
+  item.className = 'nav-item';
+  item.id = 'nav-' + i;
+  item.onclick = function(){ openChapter(i); };
+  item.innerHTML = '<div class="nav-num"><span>' + (i+1) + '</span></div><div class="nav-text">' + ch.title + '</div><div class="nav-check">✓</div>';
+  nav.appendChild(item);
 });
+
+// Build cards
+var grid = document.getElementById('cards-grid');
+CHAPTERS.forEach(function(ch, i) {
+  var card = document.createElement('div');
+  card.className = 'chapter-card';
+  card.id = 'card-' + i;
+  card.onclick = function(){ openChapter(i); };
+  card.innerHTML = '<div class="card-num">' + ch.tag + '</div><div class="card-title">' + ch.emoji + ' ' + ch.title + '</div><div class="card-sub">' + ch.sub + '</div><div class="card-arrow">Read chapter →</div><div class="card-done">✓</div>';
+  grid.appendChild(card);
+});
+
+function showHome() {
+  document.getElementById('home').className = 'active';
+  document.getElementById('chapter').className = '';
+  document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
+  var nh = document.getElementById('nav-home');
+  nh.style.borderLeftColor='var(--gold)';
+  nh.style.background='rgba(201,168,76,0.06)';
+  nh.querySelector('.nav-text').style.color='var(--text)';
+  currentChapter = -1;
+}
+
+function openChapter(i) {
+  currentChapter = i;
+  var ch = CHAPTERS[i];
+  document.getElementById('home').className = '';
+  document.getElementById('chapter').className = 'active';
+
+  // Sidebar active
+  document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
+  var nh = document.getElementById('nav-home');
+  nh.style.borderLeftColor='transparent';
+  nh.style.background='transparent';
+  nh.querySelector('.nav-text').style.color='';
+  document.getElementById('nav-' + i).classList.add('active');
+
+  // Topbar
+  document.getElementById('ch-tag').textContent = ch.tag;
+  document.getElementById('ch-top-title').textContent = ch.title;
+
+  // Nav btns
+  document.getElementById('prev-btn').disabled = i === 0;
+  document.getElementById('next-btn').disabled = i === CHAPTERS.length - 1;
+
+  // Build content
+  var html = '<div class="ch-eyebrow">' + ch.tag + '</div>';
+  html += '<div class="ch-title">' + ch.title + '</div>';
+  html += '<div class="ch-subtitle">' + ch.sub + '</div>';
+
+  ch.sections.forEach(function(sec) {
+    html += '<div class="ch-section">';
+    html += '<div class="ch-section-title"><div class="ch-section-num">' + sec.num + '</div>' + sec.title + '</div>';
+    html += sec.content;
+    html += '</div>';
+    html += '<div class="ch-divider"></div>';
+  });
+
+  // Summary
+  html += '<div class="ch-summary"><div class="ch-summary-title">In Summary</div><div class="ch-summary-text">' + ch.summary + '</div></div>';
+
+  // Mark done btn
+  var isDone = done[i];
+  html += '<button class="mark-done-btn ' + (isDone?'done':'') + '" id="done-btn-' + i + '" onclick="markDone(' + i + ')">' + (isDone ? '✓ Chapter Complete' : 'Mark as Complete') + '</button>';
+  html += '<div style="height:40px;"></div>';
+
+  document.getElementById('chapter-content').innerHTML = html;
+  document.getElementById('chapter-content').scrollTop = 0;
+  document.getElementById('ch-progress').style.width = '0%';
+}
+
+function navigate(dir) {
+  if(currentChapter + dir >= 0 && currentChapter + dir < CHAPTERS.length) {
+    openChapter(currentChapter + dir);
+  }
+}
+
+function updateReadProgress() {
+  var el = document.getElementById('chapter-content');
+  var pct = el.scrollTop / (el.scrollHeight - el.clientHeight) * 100;
+  document.getElementById('ch-progress').style.width = Math.min(pct, 100) + '%';
+}
+
+function markDone(i) {
+  done[i] = true;
+  var btn = document.getElementById('done-btn-' + i);
+  if(btn){ btn.className = 'mark-done-btn done'; btn.textContent = '✓ Chapter Complete'; }
+  document.getElementById('nav-' + i).classList.add('done');
+  document.getElementById('card-' + i).classList.add('done');
+  updateProgress();
+
+  // Auto-advance
+  setTimeout(function(){
+    if(i < CHAPTERS.length - 1) openChapter(i + 1);
+    else showHome();
+  }, 800);
+}
+
+function updateProgress() {
+  var count = Object.keys(done).length;
+  document.getElementById('progress-text').textContent = count + ' / ' + CHAPTERS.length;
+  document.getElementById('sp-fill').style.width = (count / CHAPTERS.length * 100) + '%';
+}
+
+showHome();
 </script>
 </body>
 </html>
+HTMLEOF
+echo "Done - $(wc -c < /mnt/user-data/outputs/psychology-guide.html) bytes"
+Output
+
